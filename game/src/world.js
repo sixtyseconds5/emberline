@@ -391,6 +391,13 @@ export function createWorld(random) {
           });
         }
       } else if (e.kind === 'mine') {
+        // Mines creep toward the ship instead of drifting at random: a lone
+        // mine could otherwise stall a wave for minutes while the ship waits
+        // it out at range. Slow enough (46 px/s) to outrun and outgun.
+        e.vx += (dx / d) * 26 * dt;
+        e.vy += (dy / d) * 26 * dt;
+        const ms = Math.hypot(e.vx, e.vy);
+        if (ms > 46) { e.vx = (e.vx / ms) * 46; e.vy = (e.vy / ms) * 46; }
         e.x += e.vx * dt;
         e.y += e.vy * dt;
         if (e.x < e.radius || e.x > FIELD.width - e.radius) e.vx *= -1;

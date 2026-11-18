@@ -339,7 +339,7 @@ export function createRenderer(canvas) {
   function drawUpgrade(state) {
     overlay(0.6);
     text(`WAVE ${state.wave} CLEARED`, FIELD.width / 2, 96, 30, '#4ade80', 'center', 800);
-    text('Choose an upgrade — press 1, 2 or 3', FIELD.width / 2, 126, 15, '#93a3bd', 'center');
+    text('Choose an upgrade — press 1, 2 or 3 (auto-picks in 8s)', FIELD.width / 2, 126, 15, '#93a3bd', 'center');
     const w = 260;
     const gap = 20;
     const total = w * 3 + gap * 2;

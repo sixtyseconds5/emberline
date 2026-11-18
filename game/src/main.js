@@ -102,6 +102,10 @@ function runGame() {
   let last = performance.now();
   let wantDash = false;
   let wantOverdrive = false;
+  // When the upgrade screen opened; a player that never picks (a bot that
+  // only knows the stick and the trigger, or a distracted human) gets the
+  // best upgrade after 8 s instead of stalling the run there forever.
+  let upgradeSince = 0;
 
   // Screen readers (and anyone watching the page's text) hear the screen changes and each hit.
   function announce(message) {
@@ -204,6 +208,25 @@ function runGame() {
     accumulator += Math.min((now - last) / 1000, MAX_FRAME);
     last = now;
     handleActions();
+    // Auto-pick the best upgrade if nobody picks within 8 s.
+    if (screen === SCREEN_UPGRADE) {
+      if (!upgradeSince) upgradeSince = now;
+      else if (now - upgradeSince > 8000) {
+        const rank = { heavy: 5, rapid: 4, split: 4, hull: 3, swift: 2, magnet: 2, dash: 2, greed: 1 };
+        const choices = world.state.upgradeChoices;
+        const p = world.state.player;
+        const scored = (c) => (rank[c.id] ?? 0) + (c.id === 'hull' && p && p.hull < p.maxHull * 0.6 ? 2 : 0);
+        let best = 0;
+        for (let i = 1; i < choices.length; i += 1) if (scored(choices[i]) > scored(choices[best])) best = i;
+        const choice = world.applyUpgrade(best);
+        if (choice) {
+          audio.upgrade();
+          screen = SCREEN_PLAY;
+          announce(`Auto-picked ${choice.name}. Wave ${world.state.wave}.`);
+        }
+        upgradeSince = 0;
+      }
+    } else upgradeSince = 0;
     if (screen === SCREEN_PLAY) {
       while (accumulator >= STEP && screen === SCREEN_PLAY) {
         step();
